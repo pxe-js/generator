@@ -1,0 +1,35 @@
+#! /usr/bin/env node
+
+// @ts-ignore
+
+const yargs = require('yargs/yargs');
+const process = require("process");
+const cp = require("child_process");
+const { rm } = require('fs/promises');
+const path = require('path');
+
+const argv = yargs(process.argv.slice(2))
+    .option("template", {
+        alias: "t",
+        describe: "Choose the template",
+        default: "default"
+    })
+    .option("dir", {
+        alias: "d",
+        describe: "Specify the directory to generate the project"
+    })
+    .help("help")
+    .argv;
+
+const tmpl = argv.template;
+const dir = argv.dir || tmpl;
+
+cp.exec(
+    "git clone https://github.com/pxe-templates/" 
+    + tmpl + ".git "
+    + dir,
+    () => {
+        rm(path.join(dir, ".git"), { recursive: true });
+        rm(path.join(dir, ".gitignore"));
+    }
+);

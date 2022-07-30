@@ -1,0 +1,16 @@
+{
+    "name": "@pxe/generator",
+    "version": "1.0.0-alpha.1",
+    "description": "PXE.js project generator",
+    "main": "index.js",
+    "author": "reve-node",
+    "license": "MIT",
+    "devDependencies": {},
+    "bin": {
+        "generate": "bin/index"
+    },
+    "types": "./types/index.d.ts",
+    "dependencies": {
+        "yargs": "^17.5.1"
+    }
+}
