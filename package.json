@@ -12,10 +12,10 @@
         "yargs": "^17.5.1"
     },
     "bin": {
-        "generate": "bin/index"
+        "generate": "index"
     },
     "types": "./types/index.d.ts",
     "scripts": {
-        "build": "esbuild src/index.ts --outfile=index.js --platform=node --minify --bundle"
+        "build": "esbuild src/index.ts --outfile=index --platform=node --minify --bundle"
     }
 }
