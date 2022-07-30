@@ -2,11 +2,11 @@
 
 // @ts-ignore
 
-const yargs = require('yargs/yargs');
-const process = require("process");
-const cp = require("child_process");
-const { rm } = require('fs/promises');
-const path = require('path');
+import yargs from 'yargs/yargs';
+import process from "process";
+import { exec } from "child_process";
+import { rm } from 'fs/promises';
+import path from 'path';
 
 const argv = yargs(process.argv.slice(2))
     .option("template", {
@@ -24,7 +24,7 @@ const argv = yargs(process.argv.slice(2))
 const tmpl = argv.template;
 const dir = argv.dir || tmpl;
 
-cp.exec(
+exec(
     "git clone https://github.com/pxe-templates/" 
     + tmpl + ".git "
     + dir,
