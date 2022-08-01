@@ -2,11 +2,21 @@
 
 // @ts-ignore
 
-import yargs from 'yargs/yargs';
-import process from "process";
+import yargs from 'yargs';
+import process, { exit } from "process";
 import { exec } from "child_process";
-import { rm } from 'fs/promises';
+import { rm } from 'fs';
 import path from 'path';
+
+interface Args {
+    [x: string]: unknown;
+    template: string;
+    dir: string;
+    typescript: boolean;
+    ts: boolean;
+    _: (string | number)[];
+    $0: string;
+}
 
 const argv = yargs(process.argv.slice(2))
     .option("template", {
@@ -18,18 +28,30 @@ const argv = yargs(process.argv.slice(2))
         alias: "d",
         describe: "Specify the directory to generate the project"
     })
+    .boolean("typescript")
+    .alias("ts", "typescript")
     .help("help")
-    .argv;
+    .argv as Args;
 
 const tmpl = argv.template;
 const dir = argv.dir || tmpl;
+const ts = argv.typescript ?? false;
 
-exec(
-    "git clone https://github.com/pxe-templates/" 
-    + tmpl + ".git "
-    + dir,
-    () => {
-        rm(path.join(dir, ".git"), { recursive: true });
-        rm(path.join(dir, ".gitignore"));
+const targetTemplate = "https://github.com/pxe-templates/"
+    + tmpl
+    + (ts ? "-ts" : "")
+    + ".git";
+
+console.log("Using", targetTemplate);
+
+const handleError = (err: any) => {
+    if (err) {
+        console.error("Cannot find template", targetTemplate);
+        exit(1);
     }
-);
+}
+
+exec("git clone " + targetTemplate + " " + dir, () => {
+    rm(path.join(dir, ".git"), { recursive: true }, handleError);
+    rm(path.join(dir, ".gitignore"), handleError);
+});
