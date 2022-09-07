@@ -1,13 +1,12 @@
 #! /usr/bin/env node
 
-// @ts-ignore
-
 import yargs from 'yargs';
-import process, { exit } from "process";
 import { exec } from "child_process";
-import { rm } from 'fs';
+import { rm } from 'fs/promises';
 import path from 'path';
+import { getline, rl } from './input';
 
+// Args type
 interface Args {
     [x: string]: unknown;
     template: string;
@@ -18,11 +17,11 @@ interface Args {
     $0: string;
 }
 
+// Get args using yargs
 const argv = yargs(process.argv.slice(2))
     .option("template", {
         alias: "t",
-        describe: "Choose the template",
-        default: "default"
+        describe: "Choose the template"
     })
     .option("dir", {
         alias: "d",
@@ -33,25 +32,41 @@ const argv = yargs(process.argv.slice(2))
     .help("help")
     .argv as Args;
 
-const tmpl = argv.template;
-const dir = argv.dir || tmpl;
-const ts = argv.typescript ?? false;
+(async () => {
+    // Parsing args and target template
+    let tmpl = argv.template;
+    let dir = argv.dir || tmpl;
+    let isTs = argv.typescript;
 
-const targetTemplate = "https://github.com/pxe-templates/"
-    + tmpl
-    + (ts ? "-ts" : "")
-    + ".git";
+    if (!tmpl) {
+        tmpl = await getline("Enter the template name (default): ");
+        rl.close();
 
-console.log("Using", targetTemplate);
-
-const handleError = (err: any) => {
-    if (err) {
-        console.error("Cannot find template", targetTemplate);
-        exit(1);
+        if (!tmpl)
+            tmpl = "default";
     }
-}
 
-exec("git clone " + targetTemplate + " " + dir, () => {
-    rm(path.join(dir, ".git"), { recursive: true }, handleError);
-    rm(path.join(dir, ".gitignore"), handleError);
-});
+    if (!dir)
+        dir = tmpl;
+
+    const targetTemplate = "https://github.com/pxe-templates/"
+        + tmpl
+        + (isTs ? "-ts" : "")
+        + ".git";
+
+    console.log("Using", targetTemplate);
+
+    // Handle exception
+    process.on("uncaughtException", e => {
+        if (e) {
+            console.error(e);
+            process.exit(1);
+        }
+    })
+
+    // Clone the repo from Github
+    exec("git clone " + targetTemplate + " " + dir, () => {
+        rm(path.join(dir, ".git"), { recursive: true });
+        rm(path.join(dir, ".gitignore"));
+    });
+})()
